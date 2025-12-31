@@ -1,26 +1,36 @@
-# Dockerfile para Node.js API (backend) - VERSIÓN CORREGIDA
 FROM node:18-alpine
+
+# Instalar dependencias del sistema necesarias
+RUN apk add --no-cache bash
 
 WORKDIR /app
 
-# Copiar package.json primero (para cache de capas)
-COPY package*.json ./
+# Copiar archivos de package primero
+COPY package.json .
 
-# INSTALAR con npm install (NO npm ci) porque no tienes package-lock.json
-RUN npm install --production --no-audit --no-fund
+# Instalar dependencias de forma explícita
+RUN npm config set registry https://registry.npmjs.org/
+RUN npm install express@4.18.2
+RUN npm install cors@2.8.5
+RUN npm install multer@1.4.5-lts.1
 
-# Copiar código fuente
+# Copiar el resto
+COPY server.js .
 COPY . .
 
-# Crear directorio para uploads
+# Crear directorios necesarios
 RUN mkdir -p uploads && chmod 755 uploads
 
-# Variables de entorno
+# Limpiar cache
+RUN npm cache clean --force
+
+# Variables
 ENV NODE_ENV=production
 ENV PORT=5000
 
-# Exponer puerto
 EXPOSE 5000
 
-# Comando de inicio
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s CMD node -e "require('http').get('http://localhost:5000/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
+
 CMD ["node", "server.js"]
