@@ -1,25 +1,24 @@
-# Dockerfile MÁS SIMPLE POSIBLE
 FROM node:18-alpine
 
+# Create app directory
 WORKDIR /app
 
-# 1. Crear package.json manual
-RUN echo '{"dependencies":{}}' > package.json
+# Install dependencies based on package.json; use cache efficiently
+COPY package*.json ./
+RUN npm ci --only=production
 
-# 2. Instalar dependencias UNA POR UNA (sin npm install global)
-RUN npm init -y --silent
-RUN npm install express@4.18.2 --save --silent --no-audit --no-fund
-RUN npm install cors@2.8.5 --save --silent --no-audit --no-fund
-RUN npm install multer@1.4.5-lts.1 --save --silent --no-audit --no-fund
+# Copy source
+COPY . .
 
-# 3. Copiar server.js
-COPY server.js .
+# Create uploads dir and use a non-root user
+RUN mkdir -p /app/uploads \
+	&& addgroup -S appgroup \
+	&& adduser -S appuser -G appgroup \
+	&& chown -R appuser:appgroup /app
 
-# 4. Crear uploads
-RUN mkdir -p uploads
+USER appuser
 
-# 5. Puerto
+ENV NODE_ENV=production
 EXPOSE 5000
 
-# 6. Comando
 CMD ["node", "server.js"]

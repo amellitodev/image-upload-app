@@ -1,13 +1,10 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://images.exatronclouds.com';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 const api = axios.create({
     baseURL: API_URL,
     timeout: 30000,
-    headers: {
-        'Content-Type': 'application/json',
-    },
 });
 
 // Interceptor para errores
@@ -37,10 +34,8 @@ export const uploadImages = (files: File[]) => {
     });
 };
 
-export const getImages = (): Promise<any[]> => 
-    api.get('/api/images').then(res => res.data);
+export const getImages = (): Promise<any[]> => api.get('/api/images');
 
-export const deleteImage = (filename: string) => 
-    api.delete(`/api/image/${filename}`);
+export const deleteImage = (filename: string) => api.delete(`/api/image/${filename}`);
 
 export default api;
