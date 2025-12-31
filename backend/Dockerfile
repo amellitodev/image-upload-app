@@ -5,7 +5,8 @@ WORKDIR /app
 
 # Install dependencies based on package.json; use cache efficiently
 COPY package*.json ./
-RUN npm ci --only=production
+# Use npm install when package-lock.json may be missing (safer in this repo)
+RUN npm install --production --silent --no-audit --no-fund
 
 # Copy source
 COPY . .
