@@ -11,8 +11,20 @@ const multer = require('multer');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Configurar path para módulos globales
+if (process.env.NODE_PATH) {
+    require('module').Module._nodeModulePaths = function(from) {
+        const paths = [];
+        paths.push(process.env.NODE_PATH);
+        return paths;
+    };
+}
+
 const UPLOAD_DIR = path.join(__dirname, 'uploads');
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+
+
+
 
 // Middleware
 app.use(helmet());

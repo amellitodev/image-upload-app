@@ -1,25 +1,25 @@
+# Usar una imagen con dependencias preinstaladas
 FROM node:18-alpine
 
-# Create app directory
+# Instalar dependencias GLOBALMENTE (evita problemas de permisos)
+RUN npm config set registry https://registry.npmjs.org/ && \
+    npm install -g express@4.18.2 cors@2.8.5 multer@1.4.5-lts.1 dotenv@16.3.1
+
 WORKDIR /app
 
-# Install dependencies based on package.json; use cache efficiently
-COPY package*.json ./
-# Use npm install when package-lock.json may be missing (safer in this repo)
-RUN npm install --production --silent --no-audit --no-fund
+# Copiar solo el código de la aplicación
+COPY server.js .
 
-# Copy source
-COPY . .
+# Crear carpeta para uploads
+RUN mkdir -p uploads && chmod 755 uploads
 
-# Create uploads dir and use a non-root user
-RUN mkdir -p /app/uploads \
-	&& addgroup -S appgroup \
-	&& adduser -S appuser -G appgroup \
-	&& chown -R appuser:appgroup /app
-
-USER appuser
-
+# Variables de entorno
 ENV NODE_ENV=production
+ENV PORT=5000
+ENV NODE_PATH=/usr/local/lib/node_modules
+
+# Exponer puerto
 EXPOSE 5000
 
+# Comando de inicio
 CMD ["node", "server.js"]
