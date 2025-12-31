@@ -1,35 +1,25 @@
-# Build stage
-FROM node:18-alpine AS builder
-
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
-
-# Production stage
 FROM node:18-alpine
 
 WORKDIR /app
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
+# Copiar package.json
+COPY package*.json ./
 
-# Copy from builder
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+# Instalar dependencias (usa install, no ci)
+RUN npm install --production
 
-# Switch to non-root user
-USER nextjs
+# Copiar todo el código
+COPY . .
 
-# Environment
+# Crear carpeta para uploads
+RUN mkdir -p uploads && chmod 755 uploads
+
+# Variables de entorno
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=5000
 
-# Expose port
-EXPOSE 3000
+# Exponer puerto
+EXPOSE 5000
 
-# Start command
+# Comando de inicio
 CMD ["node", "server.js"]
